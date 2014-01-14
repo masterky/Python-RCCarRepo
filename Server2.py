@@ -74,12 +74,9 @@ print "[..] New Socket on localhost:5556"
 host = ''   # Get local machine name
 port = 5556 # Reserve a port for your service.
 
- 
 ### Bind the Socket
 s.bind((host, port))        # Bind to the port
 s.listen(0)  				# Now wait for client connection.
-anz_diconnects = 0 			# MAX 5 Disconnects erlauben
-
 
 def setFlashLight(pin, status=True):
 	pass
@@ -93,7 +90,7 @@ def cleanUp():
 	
 try:
 	### Begin the Loop
-	while anz_diconnects is not 5:
+	while True:
 		
 		print '[..] Waiting for clients...'
 		
@@ -153,7 +150,7 @@ try:
 				print "[..] Client Disconnected"
 				c.close() # close Connection
 				break
-		anz_diconnects = anz_diconnects +1	
+
 except (KeyboardInterrupt, SystemExit):
 	print "[..] InteruptHandler is running!"
 	print "[..] ", "All IO/s going to be reseted"
