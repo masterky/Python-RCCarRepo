@@ -62,7 +62,11 @@ class Servo(object):
 		wiringpi2.pinMode(self.pin, self.SOFT_PWM_OUTPUT)
 		wiringpi2.digitalWrite(self.pin, 0)
 
-		
-		
-	
-		
+#led = LED(13)
+#led.write()
+#led.reset()
+
+#s = Servo(1)
+#s.write(120)
+#s.write(100)
+#s.reset()
