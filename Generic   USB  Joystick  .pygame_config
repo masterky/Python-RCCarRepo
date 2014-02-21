@@ -1,0 +1,23 @@
+[Joystick]
+[Config]
+[Generic   USB  Joystick  ]
+left_axe_right_left=0
+left_axe_up_down=1
+right_axe_right_left=2
+right_axe_up_down=3
+start_button=9
+select_button=8
+x_button=2
+o_button=1
+quad_button=3
+triangle_button=0
+steering_pad_right_left=0
+steering_pad_up_down=1
+left_up_button=4
+left_down_button=6
+right_up_button=5
+right_down_button=7
+left_axe_button=10
+right_axe_button=11
+[/Config]
+[/Joystick]
