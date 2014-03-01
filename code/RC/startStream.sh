@@ -1,0 +1,1 @@
+gst-launch -v v4l2src ! ffmpegcolorspace ! video/x-raw-yuv,width=320,height=240,framerate=\(fraction\)30/1 ! queue ! videorate ! video/x-raw-yuv,framerate=30/1 ! jpegenc ! multipartmux ! tcpserversink host=192.168.3.1 port=5000 sync=true

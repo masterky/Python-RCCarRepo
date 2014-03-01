@@ -1,0 +1,30 @@
+import wiringpi2, time
+DELAY_PWM = 0.005
+OUTPUT = 1
+SET_PWM = 2
+PIN_TO_PWM = 1
+PWM_MODE_MS = 0 #No Balancer enabled
+def softPwm():
+	print "SoftPwm Mode"
+
+	wiringpi2.wiringPiSetup()
+	wiringpi2.pinMode(PIN_TO_PWM,SET_PWM)
+	wiringpi2.pwmSetMode(PWM_MODE_MS)	
+	#wiringpi2.softPwmCreate(PIN_TO_PWM,0,100) # Setup PWM using Pin, Initial Value and Range parameters
+	#wiringpi2.softServoSettup()
+	#softServoWrite()
+	while True:
+		for i in range(0, 1024):
+			wiringpi2.pwmWrite(PIN_TO_PWM, i) 	
+			wiringpi2.delay(150)
+			print "Write to PWM: ", i
+		for i in reversed(range(0, 1024)):
+			wiringpi2.pwmWrite(PIN_TO_PWM, i) 	
+			wiringpi2.delay(50)
+			print "Write to PWM: ", i
+try:
+    #reset_pins(io)   
+    softPwm()
+
+except (KeyboardInterrupt, SystemExit):
+    reset_pins(io)
