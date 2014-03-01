@@ -13,13 +13,24 @@
 #################################################
 
 ### Import Libraries
-import socket
-import time
-from os import path
-import sys
-from datetime import datetime
-import wiringpi2, time
+
+# WiringPi Lib for GPIO
+import wiringpi2
+
+# Own classes for GPIO
 from Servo import Servo, LED
+
+# Network connections
+import socket
+
+# Sys libs
+from datetime import datetime
+from os import path
+
+import time
+import sys
+import subprocess
+import threading
 
 #first Byte
 SET_SPEED_FORWARD = 1
@@ -38,7 +49,7 @@ SET_CAMERA_ROTATION_AUTO = 4
 SEARCH_FOR_GPS = 5
 MEASURE_CPU_TEMP = 6
 MEASURE_VOLTAGE_ON_PI = 8
-
+NOP = 10
 # Pre Definded Var
 PWM_MODE_MS = 0 #No Balancer enabled
 NEUTRAL = 900
@@ -77,6 +88,19 @@ port = 5556 # Reserve a port for your service.
 ### Bind the Socket
 s.bind((host, port))        # Bind to the port
 s.listen(0)  				# Now wait for client connection.
+def call(com):
+	return subprocess.check_output(com).split("\n")[0]
+def simpleCall(process):
+	return subprocess.call(com)
+
+# Yet to implement correctly
+
+def getCPUTemp():
+	return call(["vcgencmd", "measure_temp"])[5:7]
+def startWebcam():
+	return simpleCall(["sudo", "sh", "/home/pi/MOTION/startMjpegStreamer.sh", "&"])
+def stopWebcam():
+	return simpleCall(["sh", "/home/pi/MOTION/killMjpegStreamer.sh", "&"])
 
 def setFlashLight(pin, status=True):
 	pass
