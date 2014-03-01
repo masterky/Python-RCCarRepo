@@ -18,7 +18,7 @@ class LED(object):
 			wiringpi2.digitalWrite(self.pin, 0)
 			time.sleep(self.DELAY_LED)
 	def write(self):
-		self.status = not(self.status)
+		self.status = not self.status
 		self._write(self.status)
 	def reset(self):
 		self._write(False)
@@ -32,8 +32,8 @@ class Servo(object):
 	
 	# Var
 	DELAY_PWM = 0.005
-	HARD_PWM_OUTPUT = 2 # PWM Mode
-	SOFT_PWM_OUTPUT = 1 # Output Mode
+	HARD_PWM_OUTPUT = 2
+	SOFT_PWM_OUTPUT = 1
 	def __init__(self, pin): 
 		self.pin = pin
 		self.mode = self.SOFT
@@ -45,28 +45,18 @@ class Servo(object):
 		wiringpi2.pinMode(self.pin,self.HARD_PWM_OUTPUT)
 		
 	def write(self, value):
-		if self.mode is self.HARD:
+		if self.mode == self.HARD:
 			self._hardPwm(value)
 		else: 
 			self._softPwm(value)
-	
 	def _softPwm(self, value):
 		wiringpi2.softPwmWrite(self.pin, value)
 		time.sleep(self.DELAY_PWM)
-		print "Write softPwm: ", value
+		# print "Write softPwm: ", value
 	def _hardPwm(self, value):
 		wiringpi2.pwmWrite(self.pin, value)
 		time.sleep(self.DELAY_PWM)
-		print "Write hardPwm: ", value
+		# print "Write hardPwm: ", value
 	def reset(self):
 		wiringpi2.pinMode(self.pin, self.SOFT_PWM_OUTPUT)
 		wiringpi2.digitalWrite(self.pin, 0)
-
-#led = LED(13)
-#led.write()
-#led.reset()
-
-#s = Servo(1)
-#s.write(120)
-#s.write(100)
-#s.reset()
