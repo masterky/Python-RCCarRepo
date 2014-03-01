@@ -18,7 +18,7 @@ class LED(object):
 			wiringpi2.digitalWrite(0)
 			time.sleep(DELAY_LED)
 	def write():
-		self.status = !self.status
+		self.status = not(self.status)
 		_write(self.status)
 	def reset():
 		_write(False)
