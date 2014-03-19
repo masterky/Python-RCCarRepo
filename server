@@ -1,0 +1,14 @@
+#!/bin/sh
+#/etc/init.d/server
+
+start()
+{
+echo "[START] RC-Car Server"
+sudo python2.7 ~/pi2/Code/Python-RCCarRepo/Server2.py
+}
+stop()
+{
+echo "[STOP] RC-Car Server"
+sudo kill $(ps aux | grep "sudo python" | cut -b 10-14)
+
+}

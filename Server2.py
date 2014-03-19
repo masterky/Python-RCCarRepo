@@ -32,6 +32,11 @@ import sys
 import subprocess
 import threading
 
+#paths
+KILL_WEBCAM_SCRIPT = "/home/pi/pi2/Scripts/killMjpegStreamer.sh"
+START_WEBCAM_SCRIPT = "/home/pi/pi2/Scripts/startMjpegStreamer.sh"
+
+
 #first Byte
 SET_SPEED_FORWARD = 1
 SET_SPEED_REVERSE = 0
@@ -64,6 +69,9 @@ BACK_LIGHT_PIN = 3
 OUTPUT = 1
 INPUT = 0
 
+#Camera status
+cameraStatus = False
+
 print "[..] ", "Init Wiring Pi Lib"
 wiringpi2.wiringPiSetup()
 wiringpi2.pwmSetMode(PWM_MODE_MS)
@@ -88,19 +96,37 @@ port = 5556 # Reserve a port for your service.
 ### Bind the Socket
 s.bind((host, port))        # Bind to the port
 s.listen(0)  				# Now wait for client connection.
+
+def shutdown():
+	subprocess.call(["sudo", "shutdown", "-h", "now"])
+
 def call(com):
 	return subprocess.check_output(com).split("\n")[0]
 def simpleCall(process):
-	return subprocess.call(com)
+	return subprocess.call(process)
 
 # Yet to implement correctly
 
+def startWebcamThread():
+	subprocess.call(["sudo", "sh", START_WEBCAM_SCRIPT, "&"])	
+def stopWebcamThread():
+	subprocess.call(["sudo", "sh", KILL_WEBCAM_SCRIPT, "&"])
 def getCPUTemp():
 	return call(["vcgencmd", "measure_temp"])[5:7]
 def startWebcam():
-	return simpleCall(["sudo", "sh", "/home/pi/MOTION/startMjpegStreamer.sh", "&"])
+	t = threading.Thread(target=startWebcamThread, args=())
+	t.daemon = True
+	t.start()
+	print "Setting camera status"
+	return t
+	#simpleCall(["sudo", "sh", "/home/pi/pi2/Scripts/startMjpegStreamer.sh", "&"])
 def stopWebcam():
-	return simpleCall(["sh", "/home/pi/MOTION/killMjpegStreamer.sh", "&"])
+	print "Trying to stop webcam..."
+	tstop = threading.Thread(target=stopWebcamThread, args=())
+	tstop.daemon = True
+	tstop.start()
+	return tstop
+	#simpleCall(["sudo", "sh", "/home/pi/pi2/Scripts/killMjpegStreamer.sh", "&"])
 
 def setFlashLight(pin, status=True):
 	pass
@@ -119,8 +145,7 @@ try:
 		print '[..] Waiting for clients...'
 		
 		c, addr = s.accept()     # Establish connection with client
-		print '[..] New Client: ', addr
-		
+		print '[..] New Client: ', addr		
 		while True:
 			
 			tStart = datetime.now()
@@ -163,9 +188,26 @@ try:
 				if action == 3:
 					# change status
 					frontLed.write()
+				# Works fine :)
+				elif action==SET_CAMERA_ON:
+					if actionData is 1:
+						#Start Camera Stream
+						if (cameraStatus is False):
+							print "Starting Webcam now"
+							cameraStatus = True
+							startWebcam()
+					else:
+						#Stop Camera Stream
+						if (cameraStatus):
+							print "Stoping Webcam now"
+							cameraStatus = False
+							stopWebcam()
+						else:
+							pass
 				
-				
-				
+				elif action==CLOSE_COMMUNICATION:
+					if actionData is 1:
+						shutdown()
 				# Actions starts here
 				
 				
