@@ -19,7 +19,7 @@ import wiringpi2
 
 # Own classes for GPIO
 from Servo import Servo, LED
-
+from ServoShield import AdafruitServo
 # Network connections
 import socket
 
@@ -44,6 +44,13 @@ SET_SPEED_REVERSE = 0
 #secomd Byte					
 SET_STEERING_LEFT = 1
 SET_STEERING_RIGHT = 0
+
+# Camera values
+SET_CAMERA_NO_MOVE = -1
+SET_CAMERA_RIGHT = 0
+SET_CAMERA_LEFT = 1
+SET_CAMERA_DOWN = 2
+SET_CAMERA_UP = 3
 					
 # Third Byte, first 4 control bits
 CLOSE_COMMUNICATION = 0
@@ -78,8 +85,24 @@ wiringpi2.pwmSetMode(PWM_MODE_MS)
 
 print "[..] ", "Init Servos"
 
-throttle = Servo(THROTTLE_PIN)
-steering = Servo(STEERING_PIN)
+throttleServo = Servo(THROTTLE_PIN)
+steeringServo = AdafruitServo(address=0x41, channel=0, preset=True, servoMin=186, servoMax=686)
+# Upwards dirction
+cameraServo1  = AdafruitServo(address=0x41, channel=1, preset=True, servoMin=186, servoMax=686)
+# left and right direction
+cameraServo2 = AdafruitServo(address=0x41, channel=2, preset=True, servoMin=186, servoMax=686)
+
+cameraServo1Value = 0
+cameraServo1Direction = SET_CAMERA_LEFT
+cameraServo2Value = 0
+cameraServo2Direction = SET_CAMERA_UP
+
+#for i in range(0,100):
+#	steeringServo.write(value=i, direction=0)
+#	time.sleep(0.1)
+#for i in range(0,100):
+#	time.sleep(0.1)
+#	steeringServo.write(value=i, direction=1)
 
 print "[..] ", "Init LEDs"
 
@@ -130,11 +153,9 @@ def stopWebcam():
 
 def setFlashLight(pin, status=True):
 	pass
-def setFlashLight(pin, status=False):
-	pass
 def cleanUp():
-	throttle.reset()
-	steering.reset()
+	throttleServo.reset()
+	steeringServo.reset()
 	frontLed.reset()
 	backLed.reset()
 	
@@ -174,21 +195,105 @@ try:
 				action = (c3 & 0xF)
 				actionData = (c3 >> 4)
 				print "[..] ", "throttleDirection: ", throttleDirection , " , throttle: " , throttle, ", steeringDirection: ", steeringDirection, ", steering: ", steering, " , action: ", action, " , actionData: ", actionData
+				print "[..] ", "steeringDirection ", steeringDirection
 				print "[..]", "Action starts"
 				print "[..]", "THROTTLE : ", throttle
+				print "[..]", "Steering: ", steering
 				# Write Throttle
 				if (throttleDirection is SET_SPEED_FORWARD):
 					print "[..] Drive forward: ", throttle
-					#throttle.write(NEUTRAL + throttle) #takes about 0.005 Sec
+					#throttleServo.write(NEUTRAL + throttle) #takes about 0.005 Sec
 				# Turn right	
 				else:
 					print "[..] Drive reverse: ", throttle
-					#throttle.write(NEUTRAL - throttle) #takes about 0.005 Sec
+					#throttleServo.write(NEUTRAL - throttle) #takes about 0.005 Sec
+				
+				if (steeringDirection is SET_STEERING_LEFT):
+					print "[..] Steering left: ", steering
+					steeringServo.write(value=steering, direction=SET_STEERING_LEFT)
+				else:
+					print "[..] Steering right: ", steering
+					steeringServo.write(value=steering, direction=SET_STEERING_RIGHT) 
 				print "[..]", "ACTION : ", action
+				if action == MEASURE_VOLTAGE_ON_PI:
+					print "Measure Voltage"
+				if action == MEASURE_CPU_TEMP:
+					print "Measure CPU Temp"
+					tmp = int(getCPUTemp())
+					print "Temperature is ", tmp
+					c.send(chr(1));
+					c.send(chr(tmp)); 
 				if action == 3:
 					# change status
 					frontLed.write()
 				# Works fine :)
+				if action == SET_CAMERA_ROTATION:
+					print "Action camera rotation"
+					CAMERA_INV = 20
+					if actionData is SET_CAMERA_RIGHT:
+						if cameraServo1Direction == SET_CAMERA_RIGHT:
+                                                        cameraServo1Value = cameraServo1Value + CAMERA_INV
+                                                        if (cameraServo1Value < 0):
+                                                                cameraServo1Value=0
+                                                                cameraServo1Direction = SET_CAMERA_LEFT
+                                                        elif (cameraServo1Value >= 100):
+                                                                cameraServo1Value = 100
+                                                else:
+							cameraServo1Value = cameraServo1Value - CAMERA_INV
+                                                print "cameraServo2Value:", cameraServo2Value
+                                                servo1Direction = 0
+                                                if cameraServo1Direction == SET_CAMERA_RIGHT:
+                                                        servo1Direction = 1
+                                                cameraServo1.write(value=cameraServo1Value, direction=servo1Direction)
+					elif actionData is SET_CAMERA_LEFT:
+						if cameraServo1Direction == SET_CAMERA_LEFT:
+                                                        cameraServo1Value = cameraServo1Value + CAMERA_INV
+                                                        if (cameraServo1Value < 0):
+                                                                cameraServo1Value=0
+                                                                cameraServo1Direction = SET_CAMERA_RIGHT
+                                                        elif (cameraServo1Value >= 100):
+                                                                cameraServo1Value = 100
+                                                else:
+							cameraServo1Value = cameraServo1Value - CAMERA_INV
+                                                print "cameraServo2Value:", cameraServo2Value
+                                                servo1Direction = 0
+                                                if cameraServo1Direction == SET_CAMERA_RIGHT:
+                                                        servo1Direction = 1
+                                                cameraServo1.write(value=cameraServo1Value, direction=servo1Direction)
+
+					elif actionData is SET_CAMERA_UP:
+						if cameraServo2Direction == SET_CAMERA_UP:
+                                                        cameraServo2Value = cameraServo2Value + CAMERA_INV
+                                                        if (cameraServo2Value < 0):
+								cameraServo2Value=0
+                                                                cameraServo2Direction = SET_CAMERA_DOWN
+                                                        elif (cameraServo2Value >= 100):
+                                                                cameraServo2Value = 100
+                                                else:
+                                                        cameraServo2Value = cameraServo2Value - CAMERA_INV
+						print "cameraServo2Value:", cameraServo2Value
+						servo2Direction = 0
+						if cameraServo2Direction == SET_CAMERA_UP:
+							servo2Direction = 1
+                                                cameraServo2.write(value=cameraServo2Value, direction=servo2Direction)
+
+					elif actionData is SET_CAMERA_DOWN:
+						if cameraServo2Direction == SET_CAMERA_DOWN:
+							cameraServo2Value = cameraServo2Value + CAMERA_INV
+							if (cameraServo2Value < 0):
+								cameraServo2Value = 0
+								cameraServo2Direction = SET_CAMERA_UP
+							elif (cameraServo2Value >= 100):
+								cameraServo2Value = 100
+						else:
+							cameraServo2Value = cameraServo2Value - CAMERA_INV
+						print "cameraServo2Value=", cameraServo2Value
+						servo2Direction = 0
+                                                if cameraServo2Direction == SET_CAMERA_UP:
+                                                        servo2Direction = 1
+
+						cameraServo2.write(value=cameraServo2Value, direction=servo2Direction)
+						
 				elif action==SET_CAMERA_ON:
 					if actionData is 1:
 						#Start Camera Stream
