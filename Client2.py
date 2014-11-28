@@ -17,7 +17,6 @@
 #################################################
 
 ### Import Libraries
-
 import time
 import pygame
 from stick import stick
@@ -199,7 +198,7 @@ while 1:
 	print "Throttle :", throttle , " , " , "Steering: ", steering
 	### Send Command to RPi
 	
-	#s.send(command)
+	s.send(command)
 	
 	
 	
