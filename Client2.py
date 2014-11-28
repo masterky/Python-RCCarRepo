@@ -25,6 +25,9 @@ from datetime import datetime
 from pygame.locals import * #import pygame libraries to gain control over your ps3 controller
 import socket
 import threading
+from sys import exit
+from os import popen
+import select
 
 # First Byte
 SET_SPEED_FORWARD = 1;
@@ -62,41 +65,56 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 REMOTE_HOST = '10.42.0.3'
 REMOTE_PORT = 5556  # Remote Port
 
+### PS3 Controller Vars
 IS_PS3_OR_XBOX_CONTROLLER = False
+IS_INACCURACY_ENABLED = True
+
+### Network Config
+#IFACE = "wlan0"
+IFACE = "wlp2s0"
+
 
 def getSignalInDBm(essid):
-	print "iwlist wlan0 scanning | grep ", essid ," -B 2 | grep Signal | cut -d= -f3 | cut -d\" \" -f1"
+	command = "iwlist " + IFACE +" scanning | grep " + essid  + " -B 2 | grep Signal | cut -d= -f3 | cut -d\" \" -f1"
+	return popen(command).read().replace("\n","")
 def getSignalQuality(essid):
-	print "iwlist wlan0 scanning | grep ", essid ," -B 2 | grep Signal | cut -d= -f2 | cut -d\" \" -f1"
+	command = "iwlist " + IFACE + " scanning | grep " + essid + " -B 2 | grep Signal | cut -d= -f2 | cut -d\" \" -f1"
+	return popen(command).read().replace("\n","")
 def getConnectedTo():
-	print "iwconfig wlan0 | grep ESSID | cut -d: -f2 | sed 's\"\\g' "
+	command = "iwconfig " + IFACE + " | grep ESSID | cut -d: -f2 | sed  's/\"//g'"
+	return popen(command).read().replace("\n","")
 
 def rcvThread():
 
 	try:
 		while True:
-			_buffer = bytearray(2)   # 2 zero bytes
-			m = memoryview(_buffer)  # create the right buffer for the connection
-			bytes_recv = s.recv_into(m) #receiving 2 bytes
-			# Buffer not zero
-			if (bytes_recv == 2):
-			# Check Whats the message about?
-				c1 = ord(m.tobytes()[0])
-				c2 = ord(m.tobytes()[1])
-				print "[recv] Msg received : ", c1, " , ", c2
-				if c1 == 1:
-					#CPU Temperature
-					print "Rasperry Pi CPU Temp: ", c2
+			try:
+				_buffer = bytearray(2)   # 2 zero bytes
+				m = memoryview(_buffer)  # create the right buffer for the connection
+				bytes_recv = s.recv_into(m) #receiving 2 bytes
+				# Buffer not zero
+				if (bytes_recv == 2):
+				# Check Whats the message about?
+					c1 = ord(m.tobytes()[0])
+					c2 = ord(m.tobytes()[1])
+					print "[recv] Msg received : ", c1, " , ", c2
+					if c1 == 1:
+						#CPU Temperature
+						print "Rasperry Pi CPU Temp: ", c2
+					else:
+						print "Could not Handle the message"
 				else:
-					print "Could not Handle the message"
-			else:
-				pass
+					pass
+			except socket.error, e:
+				time.sleep(0.5)
+				print "[recv Thread] Wait for client connection to be astablished"
+
 	except (KeyboardInterrupt, SystemExit):
 		print "Exit thread"
 
 ### Connect Socket to remote Host
 print '[..] Connecting to ', REMOTE_HOST, REMOTE_PORT
-#s.connect((REMOTE_HOST, REMOTE_PORT)) #connect to a remote host
+s.connect((REMOTE_HOST, REMOTE_PORT)) #connect to a remote host
 
 # Create A Thread for Receiving messages
 rvT = threading.Thread(target=rcvThread, args=(""))
@@ -109,10 +127,38 @@ ACTION_BYTE_2 = 0 # most sinificant bit, steering direction other least 7 bits =
 ACTION_BYTE_3 = 0 # action and actionData
 
 ### Init Control of the JoyStick
+print "[..] Init Controller"
+
 Control = StickControl()
+try:
+ 	st = stick(Control.getStick(0))
+except pygame.error, e:
+	print "[Err] Controller not found"
+	exit(0)
+
+print "[..] New Controller found: ", Control.getStick(0).get_name()
+
 if Control.getStick(0).get_name() == "Xbox Gamepad (userspace driver)":
 	IS_PS3_OR_XBOX_CONTROLLER = True
-st = stick(Control.getStick(0))
+
+### Make is Linux Check #####
+
+#
+#
+
+### Network init #####
+
+print "[..] Reading network information"
+essid = getConnectedTo()
+time.sleep(2)
+print "[..] Connected to ", essid
+print "[..] Signal Quality: ", getSignalQuality(essid), " (", getSignalInDBm(essid), " dB)"
+print "\n"
+
+## Wait a sec and start
+print "[..] Init is over, lets play"
+time.sleep(2)
+
 
 
 while 1:
@@ -125,7 +171,7 @@ while 1:
 	### /-- Left Jojstick --/
 	
 	steering =  (int) (st.pumpAxis(st.left_axe_right_left) * 100.5)
-	if IS_PS3_OR_XBOX_CONTROLLER:
+	if IS_PS3_OR_XBOX_CONTROLLER and IS_INACCURACY_ENABLED:
 		if steering < 8 and steering > -8:
 			steering = 0
 	if steering < 0:
@@ -137,7 +183,7 @@ while 1:
 	###/-- Right Jojstick --/
 
 	throttle = (int) (st.pumpAxis(st.right_axe_up_down) * 100.5)  #-1 = oben, +1 = unten
-	if IS_PS3_OR_XBOX_CONTROLLER:
+	if IS_PS3_OR_XBOX_CONTROLLER and IS_INACCURACY_ENABLED:
 		if throttle < 5 and throttle > -5:
 			throttle = 0
 	
