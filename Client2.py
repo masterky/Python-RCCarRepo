@@ -5,13 +5,19 @@
 ### Name: Client.py
 ### Author: Malte Koch
 ### exec: python client.py
-### Version: 0.2
+### Version: 0.3
 ### Envirnoment: Python2.7
-### Requiered Libraries: pygame (Download from: http://www.pygame.org) 
+### Requiered Libraries: pygame (Download from: http://www.pygame.org)
+### 					 xboxdrv
+### For PS3 or XBox Controllers run:
+###
+### sudo xboxdrv --detach-kernel-driver
+#################################################
 ### Operating System: Linux/GNU Version
 #################################################
 
 ### Import Libraries
+
 import time
 import pygame
 from stick import stick
@@ -46,16 +52,18 @@ SEARCH_FOR_GPS = 5;
 MEASURE_CPU_TEMP = 6; 
 MEASURE_VOLTAGE_ON_PI = 8; 
 
-# Client spezific
+# Client specific
 DO_NOTHING = 10
 ACTIVATE = 1
 
 ### Open a Socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #REMOTE_HOST = '192.168.137.120' # Remote IP Address
-REMOTE_HOST = '127.0.0.1'
+#REMOTE_HOST = '127.0.0.1'
+REMOTE_HOST = '10.42.0.3'
 REMOTE_PORT = 5556  # Remote Port
 
+IS_PS3_OR_XBOX_CONTROLLER = False
 
 def getSignalInDBm(essid):
 	print "iwlist wlan0 scanning | grep ", essid ," -B 2 | grep Signal | cut -d= -f3 | cut -d\" \" -f1"
@@ -89,7 +97,7 @@ def rcvThread():
 
 ### Connect Socket to remote Host
 print '[..] Connecting to ', REMOTE_HOST, REMOTE_PORT
-s.connect((REMOTE_HOST, REMOTE_PORT)) #connect to a remote host
+#s.connect((REMOTE_HOST, REMOTE_PORT)) #connect to a remote host
 
 # Create A Thread for Receiving messages
 rvT = threading.Thread(target=rcvThread, args=(""))
@@ -103,6 +111,8 @@ ACTION_BYTE_3 = 0 # action and actionData
 
 ### Init Control of the JoyStick
 Control = StickControl()
+if Control.getStick(0).get_name() == "Xbox Gamepad (userspace driver)":
+	IS_PS3_OR_XBOX_CONTROLLER = True
 st = stick(Control.getStick(0))
 
 
@@ -114,7 +124,11 @@ while 1:
 	pygame.event.pump()
 	
 	### /-- Left Jojstick --/
-	steering =  (int) (st.pumpAxis(st.left_axe_right_left) * 100.5) #-1 = left, +1 = right
+	
+	steering =  (int) (st.pumpAxis(st.left_axe_right_left) * 100.5)
+	if IS_PS3_OR_XBOX_CONTROLLER:
+		if steering < 8 and steering > -8:
+			steering = 0
 	if steering < 0:
 		steering = - steering
 		steeringDireciton = SET_STEERING_LEFT
@@ -122,7 +136,12 @@ while 1:
 		steeringDireciton = SET_STEERING_RIGHT
 		
 	###/-- Right Jojstick --/
+
 	throttle = (int) (st.pumpAxis(st.right_axe_up_down) * 100.5)  #-1 = oben, +1 = unten
+	if IS_PS3_OR_XBOX_CONTROLLER:
+		if throttle < 5 and throttle > -5:
+			throttle = 0
+	
 	if throttle < 0:
 		# forward
 		throttle = -throttle
@@ -179,7 +198,8 @@ while 1:
 	command = chr(ACTION_BYTE_1) + chr(ACTION_BYTE_2) + chr(ACTION_BYTE_3)
 	print "Throttle :", throttle , " , " , "Steering: ", steering
 	### Send Command to RPi
-	s.send(command)
+	
+	#s.send(command)
 	
 	
 	

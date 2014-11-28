@@ -14,11 +14,18 @@
 
 ### Import Libraries
 
+'''
+
+# Pi Spezific Imports
+##########################
+
 # WiringPi Lib for GPIO
 import wiringpi2
 
 # Own classes for GPIO
 from Servo import Servo, LED
+
+'''
 
 # Network connections
 import socket
@@ -48,6 +55,7 @@ SET_CAMERA_ROTATION = 3
 SET_CAMERA_ROTATION_AUTO = 4
 SEARCH_FOR_GPS = 5
 MEASURE_CPU_TEMP = 6
+MEASURE_VELOCITY = 7
 MEASURE_VOLTAGE_ON_PI = 8
 NOP = 10
 # Pre Definded Var
@@ -64,6 +72,7 @@ BACK_LIGHT_PIN = 3
 OUTPUT = 1
 INPUT = 0
 
+'''
 print "[..] ", "Init Wiring Pi Lib"
 wiringpi2.wiringPiSetup()
 wiringpi2.pwmSetMode(PWM_MODE_MS)
@@ -78,6 +87,7 @@ print "[..] ", "Init LEDs"
 frontLed = LED(FRONT_LIGHT_PIN)
 backLed = LED(BACK_LIGHT_PIN)
 
+'''
 
 ### Open a Socket
 s = socket.socket()
@@ -155,6 +165,11 @@ try:
 				if (throttleDirection is SET_SPEED_FORWARD):
 					print "[..] Drive forward: ", throttle
 					#throttle.write(NEUTRAL + throttle) #takes about 0.005 Sec
+					try:
+						c.send(chr(MEASURE_VOLTAGE_ON_PI) + chr(75))
+					except Exception, e:
+						print "Could not send data"
+				
 				# Turn right	
 				else:
 					print "[..] Drive reverse: ", throttle
@@ -162,10 +177,8 @@ try:
 				print "[..]", "ACTION : ", action
 				if action == 3:
 					# change status
-					frontLed.write()
-				
-				
-				
+					# frontLed.write()
+					pass
 				# Actions starts here
 				
 				
@@ -173,6 +186,8 @@ try:
 			else: 
 				print "[..] Client Disconnected"
 				c.close() # close Connection
+				# Reset everything
+				
 				break
 
 except (KeyboardInterrupt, SystemExit):

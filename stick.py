@@ -143,7 +143,8 @@ class stick(object):
 				print "[StickClass] This is not a correct config file, exit"
 				return 0
 		except IOError:
-			print "[StickClass] File doesnt exist"
+
+			print "[StickClass] File:", filename, " doesnt exist"
 			return 1
 	def getStick(self):
 		return self.mystick
@@ -218,9 +219,11 @@ class stick(object):
 		self.right_down_button = self.findButton(self.mystick)
 
 #How to use this Class
-#pygame.init()
-#st = stick(pygame.joystick.Joystick(0))
-#print "We are looking for something with an analog value, like a axe to control a rc-car"
-#print st.findAxe(pygame.joystick.Joystick(0))
-#print st.right_axe_button
-#print st.left_down_button
+'''
+pygame.init()
+st = stick(pygame.joystick.Joystick(0))
+print "We are looking for something with an analog value, like a axe to control a rc-car"
+print st.findAxe(pygame.joystick.Joystick(0))
+print st.right_axe_button
+print st.left_down_button
+'''
