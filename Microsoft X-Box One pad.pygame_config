@@ -1,0 +1,23 @@
+[Joystick]
+[Config]
+[Microsoft X-Box One pad]
+left_axe_right_left=0
+left_axe_up_down=3
+right_axe_right_left=3
+right_axe_up_down=4
+start_button=9
+select_button=9
+x_button=9
+o_button=9
+quad_button=9
+triangle_button=9
+steering_pad_right_left=0
+steering_pad_up_down=0
+left_up_button=9
+left_down_button=9
+right_up_button=9
+right_down_button=9
+left_axe_button=9
+right_axe_button=9
+[/Config]
+[/Joystick]

@@ -61,8 +61,8 @@ ACTIVATE = 1
 ### Open a Socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #REMOTE_HOST = '192.168.137.120' # Remote IP Address
-#REMOTE_HOST = '127.0.0.1'
-REMOTE_HOST = '10.42.0.3'
+REMOTE_HOST = '192.168.3.1'
+#REMOTE_HOST = '10.42.0.3'
 REMOTE_PORT = 5556  # Remote Port
 
 ### PS3 Controller Vars
@@ -143,11 +143,11 @@ if Control.getStick(0).get_name() == "Xbox Gamepad (userspace driver)":
 
 ### Make is Linux Check #####
 
-#
+# 
 #
 
 ### Network init #####
-
+'''
 print "[..] Reading network information"
 essid = getConnectedTo()
 time.sleep(2)
@@ -159,7 +159,7 @@ print "\n"
 print "[..] Init is over, lets play"
 time.sleep(2)
 
-
+'''
 
 while 1:
 	### Processing time without time.sleep(0.05) approx. 300 micro seconds 
