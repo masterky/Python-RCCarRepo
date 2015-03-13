@@ -1,0 +1,23 @@
+[Joystick]
+[Config]
+[Sony PLAYSTATION(R)3 Controller]
+left_axe_right_left=0
+left_axe_up_down=1
+right_axe_right_left=2
+right_axe_up_down=3
+start_button=3
+select_button=0
+x_button=14
+o_button=13
+quad_button=15
+triangle_button=12
+steering_pad_right_left=0
+steering_pad_up_down=0
+left_up_button=10
+left_down_button=8
+right_up_button=11
+right_down_button=9
+left_axe_button=1
+right_axe_button=2
+[/Config]
+[/Joystick]
